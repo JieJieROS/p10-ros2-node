@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!-- Revolute-Revolute Manipulator -->
+<!--
+Copied and modified from ROS1 example -
+https://github.com/ros-simulation/gazebo_ros_demos/blob/kinetic-devel/rrbot_description/urdf/rrbot.xacro
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ddt_p10">
+    <xacro:arg name="prefix" default="" />
+
+    <!-- Import Robot macro -->
+<!--    <xacro:include filename="/home/lsy/ddt2_ws/src/ddt2_assets/description/urdf/one_actuator_description.urdf.xacro" />-->
+
+    <xacro:include filename="$(find ddt2_assets)/urdf/one_actuator_description.urdf.xacro" />
+    <!-- Import ros2_control description -->
+    <xacro:include filename="$(find ddt2_assets)/ros2_control/one_actuator.ros2_control.xacro" />
+
+    <!-- Used for fixing robot -->
+    <link name="world"/>
+
+    <xacro:description parent="world" prefix="$(arg prefix)">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:description>
+
+    <xacro:one_actuator name="one_actuator" prefix="$(arg prefix)" />
+
+</robot>

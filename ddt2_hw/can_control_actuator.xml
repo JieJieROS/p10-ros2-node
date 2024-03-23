@@ -1,0 +1,9 @@
+<library path="ddt2_hw">
+    <class name="ddt2_hw/CanControlActuator"
+           type="ddt2_hw::CanControlActuator"
+           base_class_type="hardware_interface::SystemInterface">
+        <description>
+            The ros2_control CanControlActuator for drive motors which controled by can.
+        </description>
+    </class>
+</library>

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="one_actuator" params="name prefix slowdown:=2.0">
+
+        <ros2_control name="${name}" type="system">
+            <hardware>
+                <plugin>ddt2_hw/CanControlActuator</plugin>
+                <param name="hw_start_duration_sec">1.0</param>
+                <param name="hw_stop_duration_sec">3.0</param>
+                <param name="hw_slowdown">${slowdown}</param>
+            </hardware>
+            <joint name="joint1">
+                <command_interface name="effort">
+                    <param name="min">-10</param>
+                    <param name="max">10</param>
+                </command_interface>
+                <state_interface name="effort"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+        </ros2_control>
+
+    </xacro:macro>
+
+</robot>

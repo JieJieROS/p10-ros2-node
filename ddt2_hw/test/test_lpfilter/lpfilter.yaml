@@ -1,0 +1,2 @@
+low_pass_filter:
+  cutoff_frequency: 2.0  # 截止频率，单位为Hz
