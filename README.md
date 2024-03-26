@@ -37,7 +37,7 @@ sudo apt-get install ros-foxy-ros2-controller
 cd ~
 mkdir ddt2_hw
 cd ddt2_hw
-git clone git@github.com:L-SY/ddt2_hw.git ~/ddt2_hw/src
+git clone git@github.com:DDTRobot/p10-ros2-node.git
 colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -G Ninja
 ```
 
