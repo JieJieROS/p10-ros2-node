@@ -1,4 +1,3 @@
-
 from launch import LaunchDescription
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 
@@ -55,7 +54,7 @@ def generate_launch_description():
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner.py",
-        arguments=["ddt2_controller", "--controller-manager", "/controller_manager"],
+        arguments=["ddt2_position_controller", "--controller-manager", "/controller_manager"],
     )
 
     nodes = [

@@ -44,75 +44,70 @@
 #include <mutex>
 #include <thread>
 
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp/time.hpp"
 #include "rclcpp/clock.hpp"
 #include "rclcpp/logger.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/time.hpp"
 
-namespace can_interface
-{
-    struct CanFrameStamp
-    {
-        can_frame frame;
-        rclcpp::Time stamp;
-    };
+namespace can_interface {
+struct CanFrameStamp {
+  can_frame frame;
+  rclcpp::Time stamp;
+};
 
-    class CanBus
-    {
-    public:
-        /** \brief
-         * Initialize device at can_device, retry if fail. Set up header of CAN frame.
-         *
-         * \param bus_name Bus's name(example: can0).
-         * \param data_ptr Pointer which point to CAN data.
-         */
-        CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_priority);
-        /** \brief Read active data from read_buffer_ to data_ptr_, such as position, velocity, torque and so on. Clear
-         * read_buffer_ after reading.
-         *
-         * \param time ROS time, but it doesn't be used.
-         */
-        void read(rclcpp::Time time);
-        /** \brief Init for some motor.
-         *
-         */
-        void start();
-        /** \brief Close for some motor.
-         *
-         */
-        void close();
-        /** \brief Write commands to can bus.
-         *
-         */
-        void write();
+class CanBus {
+public:
+  /** \brief
+   * Initialize device at can_device, retry if fail. Set up header of CAN frame.
+   *
+   * \param bus_name Bus's name(example: can0).
+   * \param data_ptr Pointer which point to CAN data.
+   */
+  CanBus(const std::string &bus_name, CanDataPtr data_ptr, int thread_priority);
+  /** \brief Read active data from read_buffer_ to data_ptr_, such as position,
+   * velocity, torque and so on. Clear read_buffer_ after reading.
+   *
+   * \param time ROS time, but it doesn't be used.
+   */
+  void read(rclcpp::Time time);
+  /** \brief Init for some motor.
+   *
+   */
+  void start();
+  /** \brief Close for some motor.
+   *
+   */
+  void close();
+  /** \brief Write commands to can bus.
+   *
+   */
+  void write();
 
-        void write(can_frame* frame);
+  void write(can_frame *frame);
 
-        void test();
+  void test();
 
-        const std::string bus_name_;
+  const std::string bus_name_;
 
-    private:
-        /** \brief This function will be called when CAN bus receive message. It push frame which received into a vector: read_buffer_.
-         *
-         * @param frame The frame which socketcan receive.
-         */
-        void frameCallback(const can_frame& frame);
+private:
+  /** \brief This function will be called when CAN bus receive message. It push
+   * frame which received into a vector: read_buffer_.
+   *
+   * @param frame The frame which socketcan receive.
+   */
+  void frameCallback(const can_frame &frame);
 
-        SocketCAN socket_can_;
-        CanDataPtr data_ptr_;
-        std::vector<CanFrameStamp> read_buffer_;
+  SocketCAN socket_can_;
+  CanDataPtr data_ptr_;
+  std::vector<CanFrameStamp> read_buffer_;
 
-        can_frame rm_frame0_{};  // for id 0x201~0x204
-        can_frame rm_frame1_{};  // for id 0x205~0x208
+  can_frame ddt_frame0_{}; // for id 1-4
+  can_frame ddt_frame1_{}; // for id 5-8
 
-        can_frame ddt_frame0_{};  // for id 1-4
-        can_frame ddt_frame1_{};  // for id 5-8
+  mutable std::mutex mutex_;
 
-        mutable std::mutex mutex_;
+  rclcpp::Logger logger_;
+  rclcpp::Clock clock_;
+};
 
-        rclcpp::Logger  logger_;
-        rclcpp::Clock clock_;
-    };
-
-}  // namespace can interface
+} // namespace can_interface

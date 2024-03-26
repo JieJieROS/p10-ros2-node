@@ -1,31 +1,9 @@
 actuator_coefficient:
   ddtP10: # DDTP10 with reducer
-    act2pos: 0.00009587 # 2PI/32769
+    act2pos: 0.00019174 # 2PI/32769
     act2vel: 0.1047197551   # 2PI/60
     act2effort: 0.025  # 75A/750*2.5Nm/A = 0.025  2.5Nm/A是转矩常数
     effort2act: 40.0   # 1/act2effort
-    max_out: 7500
-  dm4310: # DM4310 with reducer
-    act2pos: 0.00009583 # 2PI/2^16 65536
-    act2vel: 0.01025641   # 21/2^12
-    act2effort: 0.0034188  # 14/2^12
-    kp2act: 8.19            # 4095/500
-    kd2act: 819.0             # 4095/5
-    pos2act: 10435.1456         # 1/act2pos
-    vel2act: 97.5000024    # 1/act2vel
-    effort2act: 292.500293   # 1/act2effort
-    pos_offset: -3.14
-    vel_offset: -21
-    effort_offset: -7.0
-  rm2006: # RoboMaster 2006 motor
-    act2pos: 2.13078897e-5  # 2PI/8192*(1/36)
-    act2vel: 0.0029088820   # 2PI/60*(1/36)
-    act2effort: 0.00018  #10/10000*0.18
-    effort2act: 5555.5555555   # 1/act2effort
-    max_out: 10000
-  rm_3508: # RoboMaster 3508 without reducer
-    act2pos: 0.0007669903  # 2PI/8192
-    act2vel: 0.1047197551   # 2PI/60
-    act2effort: 1.90702994e-5  # 20/16384*0.0156223893
-    effort2act: 52437.561519   # 1/act2effort
-    max_out: 16384
+    pos2act: 100
+    pos_offset: 5866
+    max_out: 20000

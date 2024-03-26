@@ -39,7 +39,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-class LowPassFilter
+class   LowPassFilter
 {
 public:
     explicit LowPassFilter(rclcpp::Node& nd);

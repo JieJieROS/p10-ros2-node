@@ -41,7 +41,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/logger.hpp>
 
-namespace can_interface
+namespace  can_interface
 {
 /* ref:
  * https://github.com/JCube001/socketcan-demo

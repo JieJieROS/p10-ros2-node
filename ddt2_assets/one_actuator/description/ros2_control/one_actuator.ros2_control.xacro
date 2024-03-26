@@ -9,6 +9,9 @@
                 <param name="hw_start_duration_sec">1.0</param>
                 <param name="hw_stop_duration_sec">3.0</param>
                 <param name="hw_slowdown">${slowdown}</param>
+                <param name="act_coeffs_path">/home/lsy/ddt2_ws/src/ddt2_assets/one_actuator/config/actuator_coefficient.yaml</param>
+                <param name="act_datas_path">/home/lsy/ddt2_ws/src/ddt2_assets/one_actuator/config/actuator.yaml</param>
+                <param name="bus_info_path">/home/lsy/ddt2_ws/src/ddt2_assets/one_actuator/config/actuator.yaml</param>
             </hardware>
             <joint name="joint1">
                 <command_interface name="effort">

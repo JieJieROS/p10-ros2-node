@@ -58,6 +58,7 @@ private:
 
     std::string actuator_name_;
     std::string actuator_type_;
+    std::string act_coeffs_path_,act_datas_path_, bus_info_path_;
     can_interface::CanMotor can_motor_;
 
     enum class integration_level_t : std::uint8_t

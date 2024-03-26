@@ -50,7 +50,7 @@ namespace can_interface
     private:
         ifreq interface_request_{};
         sockaddr_can address_{};
-        pthread_t receiver_thread_id_{};
+        pthread_t receiver_thread_id_{} ;
 
     public:
         /**

@@ -5,10 +5,10 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    ddt2_controller:
-      type: ddt2_controller/DDT2Controller
+    ddt2_position_controller:
+      type: ddt2_position_controller/DDT2PositionController
 
-ddt2_controller:
+ddt2_position_controller:
   ros__parameters:
     joints:
       - joint1
@@ -20,8 +20,4 @@ ddt2_controller:
       - effort
       - position
       - velocity
-
-    command_mode: position
-    gains:
-      joint1: { p: 10.0, i: 0.0, d: 3.0, i_clamp_max: 0.0, i_clamp_min: 0.0 }
-#      joint1: { p: 7.0, i: 0.7, d: 0.0, i_clamp_max: 1.0, i_clamp_min: -1.0 }  for velocity without load
+    bus_name: can0

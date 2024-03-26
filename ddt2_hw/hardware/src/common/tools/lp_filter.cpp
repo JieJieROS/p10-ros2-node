@@ -47,7 +47,7 @@ LowPassFilter::LowPassFilter(rclcpp::Node& nd)
 LowPassFilter::LowPassFilter(double cutoff_freq,rclcpp::Time now)
 : delta_t_(rclcpp::Duration::from_seconds(0.0)),logger_(rclcpp::get_logger("LowPassFilter"))
 {
-    prev_time_ = now;
+     prev_time_ = now;
     cutoff_frequency_ = cutoff_freq;
 }
 

@@ -42,7 +42,7 @@
 
 namespace can_interface
 {
-    class CanMotor
+    class  CanMotor
     {
     public:
         CanMotor():logger_(rclcpp::get_logger("CanMotor"))

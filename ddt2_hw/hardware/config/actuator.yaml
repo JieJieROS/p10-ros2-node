@@ -6,3 +6,4 @@ actuators:
     bus: can0
     id: 0x051
     type: ddtP10
+    mode: position

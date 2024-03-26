@@ -39,7 +39,7 @@
 
 #include <cmath>
 template <typename T>
-T angularMinus(T a, T b)
+T  angularMinus(T a, T b)
 {
     a = fmod(a, 2.0 * M_PI);
     b = fmod(b, 2.0 * M_PI);

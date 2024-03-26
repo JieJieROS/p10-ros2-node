@@ -39,22 +39,22 @@
 
 #include <string>
 
-namespace can_interface
-{
-    CanBus::CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_priority)
-            : bus_name_(bus_name), data_ptr_(data_ptr),logger_(rclcpp::get_logger("CanBus"))
-    {
+namespace can_interface {
+    CanBus::CanBus(const std::string &bus_name, CanDataPtr data_ptr,
+                   int thread_priority)
+            : bus_name_(bus_name), data_ptr_(data_ptr),
+              logger_(rclcpp::get_logger("CanBus")) {
         // Initialize device at can_device, false for no loop back.
-        while (!socket_can_.open(bus_name, std::bind(&CanBus::frameCallback, this, std::placeholders::_1), thread_priority) && rclcpp::ok())
-        {}
+        while (!socket_can_.open(
+                bus_name,
+                std::bind(&CanBus::frameCallback, this, std::placeholders::_1),
+                thread_priority) &&
+               rclcpp::ok()) {
+        }
         logger_ = rclcpp::get_logger("CanBus");
 
         RCLCPP_INFO(logger_, "Successfully connected to %s.", bus_name.c_str());
         // Set up CAN package header
-        rm_frame0_.can_id = 0x200;
-        rm_frame0_.can_dlc = 8;
-        rm_frame1_.can_id = 0x1FF;
-        rm_frame1_.can_dlc = 8;
 
         ddt_frame0_.can_id = 0x032;
         ddt_frame0_.can_dlc = 8;
@@ -62,83 +62,70 @@ namespace can_interface
         ddt_frame1_.can_dlc = 8;
     }
 
-    void CanBus::start()
-    {
-        for (auto& item : *data_ptr_.id2act_data_)
-        {
-            if (item.second.type.find("dm") != std::string::npos)
-            {
-                for (int count = 0; count < 5; ++count)
-                {
-                    can_frame frame{};
-                    for (int i = 0; i < 7; i++)
-                    {
-                        frame.data[i] = 0xFF;
-                    }
-                    frame.data[7] = 0xFC;
-                    frame.can_id = item.first;
-                    frame.can_dlc = 8;
-                    socket_can_.write(&frame);
+    void CanBus::start() {
+        for (auto &item: *data_ptr_.id2act_data_) {
+            if (item.second.type.find("ddt") != std::string::npos) {
+                can_frame mode_set_frame{}, zero_point_set_frame{}, enable_frame{}, dynamics_offset{};
+                mode_set_frame.data[0] = 0x01;
+                mode_set_frame.data[1] = 0x1C;
+                mode_set_frame.data[2] = 0x04;
+                mode_set_frame.data[3] = 0x00;
+                mode_set_frame.data[4] = 0x00;
+                mode_set_frame.data[5] = 0x00;
+                mode_set_frame.data[6] = 0xFF;
+                mode_set_frame.data[7] = 0xFF;
+                mode_set_frame.can_id = 0x036;
+                mode_set_frame.can_dlc = 8;
+                socket_can_.write(&mode_set_frame);
+
+
+//                for (int i = 0; i < 8; i++) {
+//                    zero_point_set_frame.data[i] = 0x00; // Once enable all ddt motor
+//                }
+//                zero_point_set_frame.data[1] = 0x01;
+//                zero_point_set_frame.can_id = 0x039;
+//                zero_point_set_frame.can_dlc = 8;
+//                socket_can_.write(&zero_point_set_frame);
+
+                for (int i = 0; i < 8; i++) {
+                    enable_frame.data[i] = 0x02; // Once enable all ddt motor
                 }
-            }
-            if (item.second.type.find("ddt") != std::string::npos)
-            {
-                for (int count = 0; count < 5; ++count)
-                {
-                    can_frame frame{};
-                    for (int i = 0; i < 8; i++)
-                    {
-                        frame.data[i] = 0x02; // Once enable all ddt motor
-                    }
-                    frame.can_id = 0x038;
-                    frame.can_dlc = 8;
-                    socket_can_.write(&frame);
-                }
+                enable_frame.can_id = 0x038;
+                enable_frame.can_dlc = 8;
+                socket_can_.write(&enable_frame);
                 // TODO : Add the callback info check 0xA0+id's info
+
+//                for (int i = 0; i < 8; i++) {
+//                    dynamics_offset.data[i] = 0x00; // Once enable all ddt motor
+//                }
+//                dynamics_offset.data[0] = 0x0D;
+//                dynamics_offset.can_id = 0x038;
+//                dynamics_offset.can_dlc = 8;
+//                socket_can_.write(&dynamics_offset);
             }
         }
     }
 
-    void CanBus::close()
-    {
-//        bool repeat = false;
-        for (auto& item : *data_ptr_.id2act_data_)
-        {
-            if (item.second.type.find("dm") != std::string::npos)
-            {
+    void CanBus::close() {
+        for (auto &item: *data_ptr_.id2act_data_) {
+            if (item.second.type.find("ddt") != std::string::npos) {
                 can_frame frame{};
-                for (int i = 0; i < 7; i++)
-                {
-                    frame.data[i] = 0xFF;
-                }
-                frame.data[7] = 0xFD;
-                frame.can_id = item.first;
-                frame.can_dlc = 8;
-                socket_can_.write(&frame);
-            }
-            if (item.second.type.find("ddt") != std::string::npos)
-            {
-                can_frame frame{};
-                for (int i = 0; i < 8; i++)
-                {
+                for (int i = 0; i < 8; i++) {
                     frame.data[i] = 0x01; // Once disable all ddt motor
                 }
                 frame.can_id = 0x038;
-                RCLCPP_INFO(logger_,std::to_string(frame.can_id));
+                RCLCPP_INFO(logger_, std::to_string(frame.can_id));
                 frame.can_dlc = 8;
                 socket_can_.write(&frame);
             }
         }
     }
 
-    void CanBus::test()
-    {
-        for (auto& item : *data_ptr_.id2act_data_)
-        {
-            if (item.second.type.find("dm") != std::string::npos)
-            {
+    void CanBus::test() {
+        for (auto &item: *data_ptr_.id2act_data_) {
+            if (item.second.type.find("dm") != std::string::npos) {
                 //       test effort
-                //            item.second.exe_effort = 1;
+                //            item.second.exe_cmd = 1;
 
                 //       test pos
                 //            item.second.cmd_pos = 0.;
@@ -149,237 +136,122 @@ namespace can_interface
                 item.second.cmd_vel = vel;
                 item.second.cmd_kd = 1;
             }
-            if (item.second.type.find("ddt") != std::string::npos)
-            {
+            if (item.second.type.find("ddt") != std::string::npos) {
                 float vel = 3;
-                item.second.exe_effort = 0;
+                item.second.exe_cmd = 0;
             }
         }
         write();
     }
 
-    void CanBus::write()
-    {
-        bool rm_has_write_frame0 = false, rm_has_write_frame1 = false, ddt_has_write_frame0 = false, ddt_has_write_frame1 = false;
+    void CanBus::write() {
+        bool ddt_has_write_frame0 = false, ddt_has_write_frame1 = false;
         // safety first
-        std::fill(std::begin(rm_frame0_.data), std::end(rm_frame0_.data), 0);
-        std::fill(std::begin(rm_frame1_.data), std::end(rm_frame1_.data), 0);
         std::fill(std::begin(ddt_frame0_.data), std::end(ddt_frame0_.data), 0);
         std::fill(std::begin(ddt_frame1_.data), std::end(ddt_frame1_.data), 0);
 
-        for (auto& item : *data_ptr_.id2act_data_)
-        {
-//            if (item.second.type.find("dm") != std::string::npos)
-//            {
-//                can_frame frame{};
-//                const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(item.second.type)->second;
-//                frame.can_id = item.first;
-//                frame.can_dlc = 8;
-//                uint16_t q_des = static_cast<int>(act_coeff.pos2act * (item.second.cmd_pos - act_coeff.pos_offset));
-//                uint16_t qd_des = static_cast<int>(act_coeff.vel2act * (item.second.cmd_vel - act_coeff.vel_offset));
-//                uint16_t kp = static_cast<int>(act_coeff.kp2act * item.second.cmd_kp);
-//                uint16_t kd = static_cast<int>(act_coeff.kd2act * item.second.cmd_kd);
-//                uint16_t tau = static_cast<int>(act_coeff.effort2act * (item.second.exe_effort - act_coeff.effort_offset));
-//                frame.data[0] = q_des >> 8;
-//                frame.data[1] = q_des & 0xFF;
-//                frame.data[2] = qd_des >> 4;
-//                frame.data[3] = ((qd_des & 0xF) << 4) | (kp >> 8);
-//                frame.data[4] = kp & 0xFF;
-//                frame.data[5] = kd >> 4;
-//                frame.data[6] = ((kd & 0xF) << 4) | (tau >> 8);
-//                frame.data[7] = tau & 0xFF;
-//                socket_can_.write(&frame);
-//            }
-//            else if (item.second.type.find("rm") != std::string::npos)
-//            {
-//                if (item.second.halted)
-//                    continue;
-//                const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(item.second.type)->second;
-//                int id = item.first - 0x201;
-//                double cmd =
-//                        minAbs(act_coeff.effort2act * item.second.exe_effort, act_coeff.max_out);  // add max_range to act_data
-//                if (-1 < id && id < 4)
-//                {
-//                    rm_frame0_.data[2 * id] = static_cast<uint8_t>(static_cast<int16_t>(cmd) >> 8u);
-//                    rm_frame0_.data[2 * id + 1] = static_cast<uint8_t>(cmd);
-//                    rm_has_write_frame0 = true;
-//
-//                }
-//                else if (3 < id && id < 8)
-//                {
-//                    rm_frame1_.data[2 * (id - 4)] = static_cast<uint8_t>(static_cast<int16_t>(cmd) >> 8u);
-//                    rm_frame1_.data[2 * (id - 4) + 1] = static_cast<uint8_t>(cmd);
-//                    rm_has_write_frame1 = true;
-//                }
-//            }
-            if (item.second.type.find("ddt") != std::string::npos)
-            {
-                const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(item.second.type)->second;
+        for (auto &item: *data_ptr_.id2act_data_) {
+            if (item.second.type.find("ddt") != std::string::npos) {
+                const ActCoeff &act_coeff =
+                        data_ptr_.type2act_coeffs_->find(item.second.type)->second;
                 int id = item.first - 0x050;
-                double cmd =
-                        minAbs(act_coeff.effort2act * item.second.exe_effort, act_coeff.max_out);  // add max_range to act_data
-                if (-1 < id && id < 4)
-                {
-                    ddt_frame0_.data[2 * (id-1)] = static_cast<uint8_t>(static_cast<int16_t>(cmd) >> 8u);
-                    ddt_frame0_.data[2 * (id-1) + 1] = static_cast<uint8_t>(cmd);
+                double cmd;
+                if (item.second.mode == "position")
+                    cmd = minAbs(act_coeff.pos2act * item.second.exe_cmd,
+                                 act_coeff.max_out); // add max_range to act_data
+                else if (item.second.mode == "effort")
+                    cmd = minAbs(act_coeff.effort2act * item.second.exe_cmd,
+                                 act_coeff.max_out); // add max_range to act_data
+                if (-1 < id && id < 4) {
+                    ddt_frame0_.data[2 * (id - 1)] =
+                            static_cast<uint8_t>(static_cast<int16_t>(cmd) >> 8u);
+                    ddt_frame0_.data[2 * (id - 1) + 1] = static_cast<uint8_t>(cmd);
                     ddt_has_write_frame0 = true;
-                }
-                else if (3 < id && id < 8)
-                {
-                    ddt_frame1_.data[2 * (id - 5)] = static_cast<uint8_t>(static_cast<int16_t>(cmd) >> 8u);
+                } else if (3 < id && id < 8) {
+                    ddt_frame1_.data[2 * (id - 5)] =
+                            static_cast<uint8_t>(static_cast<int16_t>(cmd) >> 8u);
                     ddt_frame1_.data[2 * (id - 5) + 1] = static_cast<uint8_t>(cmd);
                     ddt_has_write_frame1 = true;
                 }
             }
         }
-        if (rm_has_write_frame0)
-            socket_can_.write(&rm_frame0_);
-        if (rm_has_write_frame1)
-            socket_can_.write(&rm_frame1_);
         if (ddt_has_write_frame0)
             socket_can_.write(&ddt_frame0_);
         if (ddt_has_write_frame1)
             socket_can_.write(&ddt_frame1_);
+
+//        cansend can0 035#0400000000000000
+        can_frame check_motor_position{};
+        for (int i = 0; i < 8; i++) {
+            check_motor_position.data[i] = 0x00; // Once enable all ddt motor
+        }
+        check_motor_position.data[0] = 0x04;
+        check_motor_position.can_id = 0x035;
+        check_motor_position.can_dlc = 8;
+        socket_can_.write(&check_motor_position);
     }
 
-    void CanBus::read(rclcpp::Time time)
-    {
+    void CanBus::read(rclcpp::Time time) {
         std::lock_guard<std::mutex> guard(mutex_);
-
-        for (const auto& frame_stamp : read_buffer_)
-        {
+        can_frame check_motor_position{};
+        for (const auto &frame_stamp: read_buffer_) {
             can_frame frame = frame_stamp.frame;
-            // Check DM motor
-            if (frame.can_id == static_cast<unsigned int>(0x000))
-            {
-                if (data_ptr_.id2act_data_->find(frame.data[0]) != data_ptr_.id2act_data_->end())
-                {
-                    ActData& act_data = data_ptr_.id2act_data_->find(frame.data[0])->second;
-                    const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(act_data.type)->second;
-                    if (act_data.type.find("dm") != std::string::npos)
-                    {  // DM Motor
-                        act_data.q_raw = (frame.data[1] << 8) | frame.data[2];
-                        uint16_t qd = (frame.data[3] << 4) | (frame.data[4] >> 4);
-                        uint16_t cur = ((frame.data[4] & 0xF) << 8) | frame.data[5];
-
-                        // Converter raw CAN data to position velocity and effort.
-                        act_data.pos =
-                                act_coeff.act2pos * static_cast<double>(act_data.q_raw) + act_coeff.pos_offset;
-                        act_data.vel = act_coeff.act2vel * static_cast<double>(qd) + act_coeff.vel_offset;
-                        act_data.effort = act_coeff.act2effort * static_cast<double>(cur) + act_coeff.effort_offset;
-
-                        //          ROS_INFO_STREAM("effort = " << act_data.effort);
-                        //          ROS_INFO_STREAM("pos = " << act_data.pos);
-                        //          ROS_INFO_STREAM("vel = " << act_data.vel);
-                        try
-                        {  // Duration will be out of dual 32-bit range while motor failure
-                            act_data.frequency = 1. / (frame_stamp.stamp - act_data.stamp).seconds();
-                        }
-                        catch (std::runtime_error& ex)
-                        {
-                        }
-                        act_data.stamp = frame_stamp.stamp;
-                        act_data.seq++;
-                        // Low pass filter
-                        act_data.lp_filter->input(act_data.vel);
-                        act_data.vel = act_data.lp_filter->output();
-                        continue;
-                    }
-                }
-            }
-            // Check if robomaster motor and DDT motor
-            if (data_ptr_.id2act_data_->find(frame.can_id) != data_ptr_.id2act_data_->end())
-            {
-                ActData& act_data = data_ptr_.id2act_data_->find(frame.can_id)->second;
+            if (frame.can_id == 0x071)
+                std::memcpy(check_motor_position.data, frame.data, sizeof(check_motor_position.data));
+        }
+        for (const auto &frame_stamp: read_buffer_) {
+            can_frame frame = frame_stamp.frame;
+            if (data_ptr_.id2act_data_->find(frame.can_id) !=
+                data_ptr_.id2act_data_->end()) {
+                ActData &act_data = data_ptr_.id2act_data_->find(frame.can_id)->second;
                 if ((frame_stamp.stamp - act_data.stamp).seconds() < 0.0005)
                     continue;
-                const ActCoeff& act_coeff = data_ptr_.type2act_coeffs_->find(act_data.type)->second;
-                if (act_data.type.find("rm") != std::string::npos)
-                {
-                    act_data.q_raw = (frame.data[0] << 8u) | frame.data[1];
-                    act_data.qd_raw = (frame.data[2] << 8u) | frame.data[3];
-                    int16_t cur = (frame.data[4] << 8u) | frame.data[5];
-                    act_data.temp = frame.data[6];
-
-                    // Multiple circle
-                    if (act_data.seq != 0)  // not the first receive
-                    {
-                        if (act_data.q_raw - act_data.q_last > 4096)
-                            act_data.q_circle--;
-                        else if (act_data.q_raw - act_data.q_last < -4096)
-                            act_data.q_circle++;
-                    }
-                    try
-                    {  // Duration will be out of dual 32-bit range while motor failure
-                        act_data.frequency = 1. / (frame_stamp.stamp - act_data.stamp).seconds();
-                    }
-                    catch (std::runtime_error& ex)
-                    {
-                    }
-                    act_data.stamp = frame_stamp.stamp;
-                    act_data.seq++;
-                    act_data.q_last = act_data.q_raw;
-                    // Converter raw CAN data to position velocity and effort.
-                    act_data.pos = act_coeff.act2pos * static_cast<double>(act_data.q_raw + 8191 * act_data.q_circle);
-                    act_data.vel = act_coeff.act2vel * static_cast<double>(act_data.qd_raw);
-                    act_data.effort = act_coeff.act2effort * static_cast<double>(cur);
-                    // Low pass filter
-                    act_data.lp_filter->input(act_data.vel, frame_stamp.stamp);
-                    act_data.vel = act_data.lp_filter->output();
-                    continue;
-                } else if (act_data.type.find("ddt") != std::string::npos)
-                {
-                    act_data.q_raw = (frame.data[4] << 8u) | frame.data[5];
+                const ActCoeff &act_coeff =
+                        data_ptr_.type2act_coeffs_->find(act_data.type)->second;
+                if (act_data.type.find("ddt") != std::string::npos) {
+                    act_data.q_raw = (check_motor_position.data[0] << 8u) | check_motor_position.data[1];
                     act_data.qd_raw = (frame.data[0] << 8u) | frame.data[1];
                     int16_t cur = (frame.data[2] << 8u) | frame.data[3];
                     // Multiple circle
-                    if (act_data.seq != 0)  // not the first receive
+                    if (act_data.seq != 0) // not the first receive
                     {
                         if (act_data.q_raw - act_data.q_last > 16384)
                             act_data.q_circle--;
                         else if (act_data.q_raw - act_data.q_last < -16384)
                             act_data.q_circle++;
                     }
-//                    try
-//                    {  // Duration will be out of dual 32-bit range while motor failure
-//                        act_data.frequency = 1. / (frame_stamp.stamp - act_data.stamp).seconds();
-//                    }
-//                    catch (std::runtime_error& ex)
-//                    {
-//                    }
-//                    act_data.stamp = frame_stamp.stamp;
+                    int pos_offset_hex = std::stoi(act_coeff.pos_offset_hex, 0, 16);
                     act_data.seq++;
                     act_data.q_last = act_data.q_raw;
                     // Converter raw CAN data to position velocity and effort.
-                    double vel_resolution_ratio = 0.1, cur_resolution_ratio = 0.01;
-                    act_data.pos = act_coeff.act2pos * static_cast<double>(act_data.q_raw + 32768 * act_data.q_circle);
-                    act_data.vel = act_coeff.act2vel * static_cast<double>(act_data.qd_raw)*vel_resolution_ratio;
-                    act_data.effort = act_coeff.act2effort * static_cast<double>(cur)*cur_resolution_ratio;
+                    double pos_resolution_ratio = 0.1, vel_resolution_ratio = 0.1, cur_resolution_ratio = 0.01;
+                    act_data.pos =
+                            act_coeff.act2pos * pos_resolution_ratio *
+                            static_cast<double>(act_data.q_raw + 32768 * act_data.q_circle - pos_offset_hex) /
+                            6.28;
+                    act_data.vel = act_coeff.act2vel *
+                                   static_cast<double>(act_data.qd_raw) *
+                                   vel_resolution_ratio;
+                    act_data.effort = act_coeff.act2effort * static_cast<double>(cur) *
+                                      cur_resolution_ratio;
                     // Low pass filter
-//                    rclcpp::Time current = rclcpp::Clock().now();
-//                    act_data.lp_filter->input(act_data.vel, current);
-//                    act_data.vel = act_data.lp_filter->output();
+                    //                    rclcpp::Time current = rclcpp::Clock().now();
+                    //                    act_data.lp_filter->input(act_data.vel, current);
+                    //                    act_data.vel = act_data.lp_filter->output();
                     continue;
                 }
             }
-//            if (frame.can_id != 0x0)
-//                ROS_ERROR_STREAM_ONCE("Can not find defined device, id: 0x" << std::hex << frame.can_id
-//                                                                            << " on bus: " << bus_name_);
         }
         read_buffer_.clear();
     }
 
-    void CanBus::write(can_frame* frame)
-    {
-        socket_can_.write(frame);
-    }
+    void CanBus::write(can_frame *frame) { socket_can_.write(frame); }
 
-    void CanBus::frameCallback(const can_frame& frame)
-    {
+    void CanBus::frameCallback(const can_frame &frame) {
         std::lock_guard<std::mutex> guard(mutex_);
         rclcpp::Time current_time = rclcpp::Clock().now();
-        CanFrameStamp can_frame_stamp{ .frame = frame, .stamp = current_time };
+        CanFrameStamp can_frame_stamp{.frame = frame, .stamp = current_time};
         read_buffer_.push_back(can_frame_stamp);
     }
 
-}  // namespace can_interface
+} // namespace can_interface

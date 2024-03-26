@@ -38,20 +38,18 @@
 #pragma once
 
 #include "rclcpp/rclcpp.hpp"
+#include <can_control_actuator/common/tools/lp_filter.h>
 #include <string>
 #include <unordered_map>
-#include <can_control_actuator/common/tools/lp_filter.h>
 
-namespace can_interface
-{
-    struct ActCoeff
-    {
-        double act2pos, act2vel, act2effort, pos2act, vel2act, effort2act, pos_offset, vel_offset, effort_offset, kp2act,
-                kd2act, max_out;
+namespace can_interface {
+    struct ActCoeff {
+        double act2pos, act2vel, act2effort, pos2act, vel2act, effort2act, pos_offset,
+                vel_offset, effort_offset, kp2act, kd2act, max_out;
+        std::string pos_offset_hex;
     };
 
-    typedef enum
-    {
+    typedef enum {
         NONE = 0x07,
         OVER_VOLTAGE,
         UNDER_VOLTAGE,
@@ -62,23 +60,22 @@ namespace can_interface
         OVER_LOAD,
     } DmError;
 
-    typedef enum
-    {
+    typedef enum {
         MIT,
         POS,
         VEL,
         EFFORT,
     } ControlMode;
 
-    struct ActData
-    {
+    struct ActData {
         std::string name;
         std::string type;
+        std::string mode;
         rclcpp::Time stamp;
         uint64_t seq;
         DmError error;
-        ControlMode mode;
-        bool halted = false, need_calibration = false, calibrated = false, calibration_reading = false, is_start = false;
+        bool halted = false, need_calibration = false, calibrated = false,
+                calibration_reading = false, is_start = false;
         uint16_t q_raw;
         int16_t qd_raw;
         uint8_t temp;
@@ -86,14 +83,14 @@ namespace can_interface
         uint16_t q_last;
         double frequency;
         double pos, vel, effort;
-        double cmd_pos, cmd_vel, cmd_effort, cmd_kp, cmd_kd, exe_effort;
-        LowPassFilter* lp_filter;
+        double cmd_pos, cmd_vel, cmd_effort, cmd_kp, cmd_kd, exe_cmd;
+        double dynamic_offset;
+        LowPassFilter *lp_filter;
     };
 
-    struct CanDataPtr
-    {
-        std::unordered_map<std::string, ActCoeff>* type2act_coeffs_;
+    struct CanDataPtr {
+        std::unordered_map<std::string, ActCoeff> *type2act_coeffs_;
         //  int is for id
-        std::unordered_map<int, ActData>* id2act_data_;
+        std::unordered_map<int, ActData> *id2act_data_;
     };
-}  // namespace can interface
+} // namespace can_interface
