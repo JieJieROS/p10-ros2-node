@@ -37,7 +37,7 @@ sudo apt-get install ros-foxy-ros2-controller
 cd ~
 mkdir ddt2_hw
 cd ddt2_hw
-git clone git@github.com:DDTRobot/p10-ros2-node.git
+git clone git@github.com:L-SY/ddt2_hw.git ~/ddt2_hw/src
 colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -G Ninja
 ```
 
@@ -72,12 +72,6 @@ sudo ifconfig can0 up
 ```
 
 ##### 开启控制器
-
-> 目前仓库中为位置控制模式
->
-> 如果需要更改控制模式为速度控制则需要更改~/ddt2_ws/src/ddt2_asset/one_actuator/config/controller.yaml中
->
-> `command_mode: position`为`velocity`
 
 ```c
 source ~ddt2_ws/install/local_setup.bash
@@ -126,18 +120,6 @@ ros2 run plotjuggler plotjuggler
 `/actuator_states`：电机的一般信息加电机can信号中的原始信息
 
 ![ddt2_hw_plotjuggler.png](docs%2Fddt2_hw_plotjuggler.png)
-
-##### 电机控制器参数修改（PID）
-
-通过rqt来修改pid的参数
-
-```
-rqt
-```
-
-在左上角Plugins/configuration/DynamicReconfiguration中
-
-![ddt2_hw_rqt.png](docs%2Fddt2_hw_rqt.png)
 
 ##### 电机参数修改
 

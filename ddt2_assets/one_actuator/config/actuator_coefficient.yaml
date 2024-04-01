@@ -1,0 +1,9 @@
+actuator_coefficient:
+  ddtP10: # DDTP10 with reducer
+    act2pos: 0.000191016837120 # 2PI/32769
+    act2vel: 0.1047197551   # 2PI/60
+    act2effort: 0.025  # 75A/750*2.5Nm/A = 0.025  2.5Nm/A是转矩常数
+    effort2act: 40.0   # 1/act2effort
+    pos2act: 1000
+    max_out: 50000
+    pos_offset_hex: 16EA  #5866

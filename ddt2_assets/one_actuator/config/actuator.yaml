@@ -1,0 +1,9 @@
+bus:
+  - can0
+
+actuators:
+  joint1_motor:
+    bus: can0
+    id: 0x051
+    type: ddtP10
+    mode: position
